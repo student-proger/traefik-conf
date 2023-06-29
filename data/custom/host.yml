@@ -1,0 +1,49 @@
+http:
+  routers:
+    example-ssl:
+      entryPoints:
+        - https
+      service: web-server1
+      rule: Host(`example.com`) || Host(`www.example.com`)
+      tls:
+        certResolver: letsEncrypt
+
+    example:
+      entryPoints:
+        - http
+      service: web-server1
+      middlewares:
+        - "http-to-https"
+      rule: Host(`example.com`) || Host(`www.example.com`)
+
+    svc1-example:
+      entryPoints:
+        - https
+      service: web-server1
+      rule: Host(`svc1.example.com`)
+      tls:
+        certResolver: letsEncrypt
+
+    test-example:
+      entryPoints:
+        - http
+      service: web-server2
+      rule: Host(`test.example`)
+
+  middlewares:
+    http-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    web-server1:
+      loadBalancer:
+        servers:
+          - url: http://192.0.2.10/
+        passHostHeader: true 
+    web-server2:
+      loadBalancer:
+        servers:
+          - url: http://192.0.2.20:8080/
+        passHostHeader: true 
